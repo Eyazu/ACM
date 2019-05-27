@@ -1,0 +1,60 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int maxn = 1e4 + 10;
+struct Query {
+    int l, r, time, id;
+}q[maxn];
+struct Change {
+    int pos, New, Old;
+}c[maxn];
+int unit, T, color[maxn*100], Be[maxn], s[maxn], qt, ct, l, r, Ans, now[maxn], ans[maxn]; 
+bool cmp(Query a, Query b) {
+    return Be[a.l]==Be[b.l]?(Be[a.r]==Be[b.r]?a.time<b.time:a.r<b.r):a.l<b.l;
+}
+void modi(int x, int d) {
+    color[x] += d;
+    if(d > 0) Ans += color[x]==1;
+    if(d < 0) Ans -= color[x]==0;
+}
+void go(int x, int d) {
+	// [l, r);
+    if(l <= x && x < r) {
+        modi(d, 1);
+        modi(s[x], -1);
+    }
+    s[x] = d;
+}
+int main() {
+    int n, m, x, y; 
+    char sign[5];
+    scanf("%d%d", &n, &m);
+    unit = pow(n, 0.666);
+//	O(n*sqrt(n)), when n = n^(2/3), n*sqrt(n) get min
+    for(int i = 0; i < n; i++) {
+        scanf("%d", &s[i]);
+        now[i] = s[i];
+        Be[i] = i / unit + 1;
+    }
+    for(int i = 0; i < m; i++) {
+        scanf("%s%d%d", sign, &x, &y);
+        if(sign[0] == 'Q') x--, q[qt] = (Query){x, y, ct, qt}, qt++;
+        else x--, c[ct] = (Change) {x, y, now[x]}, now[x] = y, ct++;
+    }
+    sort(q, q+qt, cmp);
+// 	we care more about the recent pointer should be add or not 
+// 	the segment is [x, y), if we rule like that, we can get a beatiful format, have no '+' is great!
+    for(int i = 0; i < qt; i++) {
+        while(T < q[i].time) go(c[T].pos, c[T].New), T++;
+        while(T > q[i].time) go(c[T-1].pos, c[T-1].Old), T--;
+        while(l < q[i].l) modi(s[l], -1), l++;
+        while(l > q[i].l) modi(s[l-1], 1), l--;
+        while(r < q[i].r) modi(s[r], 1), r++;
+        while(r > q[i].r) modi(s[r-1], -1), r--;
+//      printf("%d %d %d\n", l, r, T);
+//      printf("%d %d %d\n", q[i].l, q[i].r, q[i].time);
+//      printf("-%d-\n", Ans);
+        ans[q[i].id] = Ans;
+    }
+    for(int i = 0; i < qt; i++) printf("%d\n", ans[i]);
+    return 0;
+}
